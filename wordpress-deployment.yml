@@ -1,42 +1,45 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wordpress-deployment
-  namespace: wordpress-env
+  name: wordpress
+  namespace: wordpress-app
+  labels:
+    app: wordpress
 spec:
   replicas: 1
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
+    type: Recreate
   selector:
     matchLabels:
       app: wordpress
+      tier: frontend
   template:
     metadata:
       labels:
         app: wordpress
+        tier: frontend
     spec:
       containers:
-        - name: wordpress
-          image: wordpress:latest
+        - name: wordpress-ctnr
+          image: wordpress:6.7.1
           env:
-            - name: WORDPRESS_DB_HOST
-              value: mysql.svc
             - name: WORDPRESS_DB_NAME
-              value: wordpress-db
+              value: wordpress
+            - name: WORDPRESS_DB_HOST
+              value: mysql
             - name: WORDPRESS_DB_USER
-              value: admin
+              value: wordpress
             - name: WORDPRESS_DB_PASSWORD
-              value: password
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secret
+                  key: wordpress-db-password
           ports:
             - containerPort: 80
           volumeMounts:
-            - name: wordpress-data
+            - name: wordpress-storage
               mountPath: /var/www/html
       volumes:
-        - name: wordpress-data
-          hostPath:
-            path: /data
-            type: DirectoryOrCreate
+        - name: wordpress-storage
+          persistentVolumeClaim:
+            claimName: wordpress-pvc

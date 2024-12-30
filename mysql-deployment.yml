@@ -1,35 +1,48 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql-deployment
-  namespace: wordpress-env
+  name: mysql-deploy
+  namespace: wordpress-app
+  labels:
+    app: wordpress
 spec:
   replicas: 1
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
+    type: Recreate
   selector:
     matchLabels:
-      app: mysql
+      app: wordpress
+      tier: backend
   template:
     metadata:
       labels:
-        app: mysql
+        app: wordpress
+        tier: backend
     spec:
       containers:
-        - name: mysql
-          image: mysql
+        - name: mysql-ctnr
+          image: mysql:5.7
           ports:
             - containerPort: 3306
           env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: rootpassword
-            - name: MYSQL_DATABASE
-              value: wordpress-db
-            - name: MYSQL_USER
-              value: admin
-            - name: MYSQL_PASSWORD
-              value: password
-
+          - name: MYSQL_DATABASE
+            value: wordpress
+          - name: MYSQL_USER
+            value: wordpress
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secret
+                key: mysql-password
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secret
+                key: mysql-root-password
+          volumeMounts:
+          - name: mysql-storage
+            mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc
