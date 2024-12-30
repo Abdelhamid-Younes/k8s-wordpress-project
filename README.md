@@ -1,5 +1,8 @@
 # WordPress Application Deployment on Kubernetes
 
+![](images/wordpress_deploy.png)
+
+
 This project demonstrates the deployment of a WordPress application on a Kubernetes cluster. It consists of a MySQL database (backend) and a WordPress instance (frontend). The deployment leverages Kubernetes' declarative configuration using a `kustomization.yml` file to manage resources effectively.
 
 ## Project Structure
